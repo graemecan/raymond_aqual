@@ -1,0 +1,19 @@
+amr_parameters.f90 -> why is this in the patch??
+gravana.f90 -> updated
+init_hydro.f90 -> removed
+init_poisson.f90 -> updated
+movie.f90 -> removed
+multigrid_fine_coarse.f90 -> updated (bit of mpi mods, nothing major)
+multigrid_fine_commons.f90 -> major update (mpi comms heavily modified)
+multigrid_fine_fine.f90 -> updated (very minor)
+output_amr.f90 -> removed
+poisson_commons.f90 -> updated (removed some spaces)
+poisson_parameters.f90 -> no changes needed
+read_params.f90 -> updated (minor changes)
+units.f90 -> no changes needed
+
+Weird behaviour #453 (just kidding, I've lost count)
+----------------------------------------------------
+If you don't set the boundary type in the namelist, it's assumed to be periodic. This makes phi get set as zero everywhere. Buuuut if the boundary conditions are NOT periodic, then an initial guess is set using the phi_ana code (which is the same code used to set the boundary conditions).
+
+This is problematic because the AQUAL solver has trouble dealing with phi=0 everywhere on the first pass. I can't remember how I fixed this problem for cosmo runs...
