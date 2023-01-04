@@ -67,6 +67,7 @@ subroutine phi_ana(rr,pp,ngrid)
 #endif
   use amr_commons
   use poisson_commons
+  use constants, only: twopi
 #ifdef EFE
   use mond_commons, only: mond_a0, &
       & g_ext, g_ext_hat_x, g_ext_hat_y, g_ext_hat_z, beta
@@ -87,16 +88,16 @@ subroutine phi_ana(rr,pp,ngrid)
   integer :: i
   real(dp):: fourpi
 
-  fourpi=4.D0*ACOS(-1.0D0)
+  fourpi=2*twopi
 
 #if NDIM==1
   do i=1,ngrid
-     pp(i)=multipole(1)*fourpi/2d0*rr(i)
+     pp(i)=multipole(1)*fourpi/2*rr(i)
   end do
 #endif
 #if NDIM==2
   do i=1,ngrid
-     pp(i)=multipole(1)*2d0*log(rr(i))
+     pp(i)=multipole(1)*2*log(rr(i))
   end do
 #endif
 #if NDIM==3

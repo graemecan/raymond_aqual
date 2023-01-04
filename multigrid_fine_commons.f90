@@ -34,17 +34,18 @@ subroutine multigrid_fine(ilevel,icount)
 
    integer, intent(in) :: ilevel,icount
 
-   !RAyMOND - we allow for a slower convergence of non-linear solver
-   !by increasing MAXITER to 50 from the normal value of 10.
-   integer, parameter  :: MAXITER  = 50
-   real(dp), parameter :: SAFE_FACTOR = 0.5
+   integer, parameter  :: MAXITER  = 50 !RAyMOND - increased for non-linear solver
+   real(dp), parameter :: SAFE_FACTOR = 0.5d0
 
-   integer  :: ifine, i, iter, info, icpu, j
-   real(kind=8) :: res_norm2, i_res_norm2, i_res_norm2_tot, res_norm2_tot
-   real(kind=8) :: debug_norm2, debug_norm2_tot
+   integer :: ifine, i, iter, icpu, j
+   logical :: allmasked
    real(kind=8) :: err, last_err
-
-   logical :: allmasked, allmasked_tot
+   real(kind=8) :: res_norm2, i_res_norm2
+#ifndef WITHOUTMPI
+   logical :: allmasked_tot
+   real(kind=8) :: res_norm2_tot, i_res_norm2_tot
+   integer :: info
+#endif
 
    if(gravity_type>0)return
    if(numbtot(1,ilevel)==0)return
@@ -95,7 +96,7 @@ subroutine multigrid_fine(ilevel,icount)
       ! Convert volume fraction to mask value
       do icpu=1,ncpu
          if(active_mg(icpu,ilevel-1)%ngrid==0) cycle
-         active_mg(icpu,ilevel-1)%u(:,4)=2d0*active_mg(icpu,ilevel-1)%u(:,4)-1d0
+         active_mg(icpu,ilevel-1)%u(:,4)=2*active_mg(icpu,ilevel-1)%u(:,4)-1d0
       end do
 
       ! Check active mask state
@@ -129,7 +130,7 @@ subroutine multigrid_fine(ilevel,icount)
          ! Convert volume fraction to mask value
          do icpu=1,ncpu
             if(active_mg(icpu,ifine-1)%ngrid==0) cycle
-            active_mg(icpu,ifine-1)%u(:,4)=2d0*active_mg(icpu,ifine-1)%u(:,4)-1d0
+            active_mg(icpu,ifine-1)%u(:,4)=2*active_mg(icpu,ifine-1)%u(:,4)-1d0
          end do
 
          ! Check active mask state
@@ -310,8 +311,7 @@ recursive subroutine recursive_multigrid_coarse(ifinelevel, safe, icount)
    integer, intent(in) :: ifinelevel,icount
    logical, intent(in) :: safe
 
-   real(dp) :: debug_norm2, debug_norm2_tot
-   integer :: i, icpu, info, icycle, ncycle, j
+   integer :: i, icpu, icycle, ncycle, j
 
    integer, dimension(1:8) :: gs_ordering, red_black, diagonal
 
@@ -576,8 +576,7 @@ subroutine build_parent_comms_mg(active_f_comm, ifinelevel)
    active_mg(myid,icoarselevel)%ngrid=nact_tot
    if(nact_tot>0) then
       allocate( active_mg(myid,icoarselevel)%igrid(1:nact_tot) )
-      !RAyMOND - added extra "u" array to store phi for full approx. scheme
-      allocate( active_mg(myid,icoarselevel)%u(1:nact_tot*twotondim,1:5) )
+      allocate( active_mg(myid,icoarselevel)%u(1:nact_tot*twotondim,1:5) ) !RAyMOND - added extra "u" array for FAS scheme
       allocate( active_mg(myid,icoarselevel)%f(1:nact_tot*twotondim,1:1) )
       active_mg(myid,icoarselevel)%igrid=0
       active_mg(myid,icoarselevel)%u=0.0d0
@@ -696,8 +695,7 @@ subroutine build_parent_comms_mg(active_f_comm, ifinelevel)
       emission_mg(icpu,icoarselevel)%ngrid=ngrids
       if(ngrids>0) then
          allocate(emission_mg(icpu,icoarselevel)%igrid(1:ngrids))
-         !RAyMOND - added extra "u" array to store phi for full approx. scheme
-         allocate(emission_mg(icpu,icoarselevel)%u(1:ngrids*twotondim,1:5) )
+         allocate(emission_mg(icpu,icoarselevel)%u(1:ngrids*twotondim,1:5) ) !RAyMOND - extra "u" array
          allocate(emission_mg(icpu,icoarselevel)%f(1:ngrids*twotondim,1:1))
          emission_mg(icpu,icoarselevel)%igrid=0
          emission_mg(icpu,icoarselevel)%u=0.0d0
@@ -764,15 +762,14 @@ subroutine build_parent_comms_mg(active_f_comm, ifinelevel)
       active_mg(icpu,icoarselevel)%ngrid=ngrids
       if(ngrids>0) then
          allocate(active_mg(icpu,icoarselevel)%igrid(1:ngrids))
-         !RAyMOND - added extra "u" array to store phi for full approx. scheme
-         allocate(active_mg(icpu,icoarselevel)%u(1:ngrids*twotondim,1:5))
+         allocate(active_mg(icpu,icoarselevel)%u(1:ngrids*twotondim,1:5)) !RAyMOND - extra "u" array
          allocate(active_mg(icpu,icoarselevel)%f(1:ngrids*twotondim,1:1))
          active_mg(icpu,icoarselevel)%igrid=0
          active_mg(icpu,icoarselevel)%u=0.0d0
          active_mg(icpu,icoarselevel)%f=0
       end if
    end do
-   
+
    nreq=0
    do i=1,nreq_tot
       cur_grid=flag2(ngridmax+i)
@@ -959,6 +956,7 @@ subroutine make_fine_bc_rhs(ilevel,icount)
    use amr_commons
    use pm_commons
    use poisson_commons
+   use constants, only: twopi
    use mond_commons
    implicit none
    integer, intent(in) :: ilevel,icount
@@ -982,7 +980,7 @@ subroutine make_fine_bc_rhs(ilevel,icount)
    ! Set constants
    nx_loc = icoarse_max-icoarse_min+1
    scale  = boxlen/dble(nx_loc)
-   fourpi = 4.D0*ACOS(-1.0D0)*scale
+   fourpi = 2*twopi*scale
    if(cosmo) fourpi = 1.5D0*omega_m*aexp*scale
 
    ngrid=active(ilevel)%ngrid

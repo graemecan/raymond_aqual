@@ -6,6 +6,7 @@ subroutine rho_ana(x,d,dx,ncell)
   use amr_parameters
   use hydro_parameters
   use poisson_parameters
+  use constants, only: twopi
   implicit none
   integer ::ncell                         ! Number of cells
   real(dp)::dx                            ! Cell size
@@ -28,7 +29,7 @@ subroutine rho_ana(x,d,dx,ncell)
 
   !Parameters for Plummer
   M0 = 1.0d0 !Mass in 10**10 M_sol
-  fourpi = 4.0d0*ACOS(-1.0D0)
+  fourpi = 2*twopi
 
   do i=1,ncell
      rx=0.0d0; ry=0.0d0; rz=0.0d0
