@@ -1,8 +1,8 @@
 RAyMOND is a patch to modify the N-body/hydrodynamics code RAMSES in order to be able to run simulations in MOND gravity. It includes both the fully non-linear AQUAL formulation of MOND, and the quasi-linear QUMOND formulation (in separate repositories as two separate patches). For details and examples of using the code, see these papers:
 
-* [RAyMOND: an N-body and hydrodynamics code for MOND (Candlish, Smith & Fellhauer 2015)](10.1093/mnras/stu2158)
-* [The velocity field in MOND cosmology (Candlish 2016)](10.1093/mnras/stw1130)
-* [Consequences of the external field effect for MOND disc galaxies in galaxy clusters (Candlish et al. 2018)](10.1093/mnras/sty2228)
+* [RAyMOND: an N-body and hydrodynamics code for MOND](https://academic.oup.com/mnras/article/446/1/1060/1339114) (Candlish, Smith & Fellhauer 2015)
+* [The velocity field in MOND cosmology](https://academic.oup.com/mnras/article/460/3/2571/2609416) (Candlish 2016)
+* [Consequences of the external field effect for MOND disc galaxies in galaxy clusters](https://academic.oup.com/mnras/article/480/4/5362/5075215) (Candlish et al. 2018)
 
 Including either patch automatically switches the gravitational solver to that of QUMOND/AQUAL. For both patches an additional MOND\_PARAMS section must be added to the namelist with the following parameters:
 
