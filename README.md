@@ -6,7 +6,7 @@ RAyMOND is a patch to modify the N-body/hydrodynamics code RAMSES in order to be
 
 Including either patch automatically switches the gravitational solver to that of QUMOND/AQUAL. For both patches an additional MOND\_PARAMS section must be added to the namelist with the following parameters:
 
-* imond\_a0: This is the MOND acceleration scale in m/s^2. This is converted to code units automatically.
+* imond\_a0: This is the MOND acceleration scale in m/s^2. This is converted to code units automatically, using the density, time and length units supplied by the user in the namelist. (**Note**: this differs from older versions of RAMSES where the units were hard-coded in the units.f90 code).
 * mond\_n: This is the exponent used in the MOND interpolation function which is hard-coded to be of the form x/(1+x^n)^(1/n) for AQUAL, or its inverse in the case of QUMOND (see Famaey & McGaugh 2012, eqs. 49 and 50). It is an easy matter to use a different mu (or nu) function: just change the appropriate line in the function "mu\_function" (or "nu\_function") at the end of poisson\_commons.f90. Note that it's probably numerically more efficient to remove mond\_n completely from the interpolation function if you are using the "simple" version where mond_n = 1.
 
 There is one additional patch-specific parameter for AQUAL runs:
