@@ -1,3 +1,5 @@
+# RAyMOND
+
 RAyMOND is a patch to modify the N-body/hydrodynamics code RAMSES in order to be able to run simulations in MOND gravity. It includes both the fully non-linear AQUAL formulation of MOND, and the quasi-linear QUMOND formulation (in separate repositories as two separate patches). For details and examples of using the code, see these papers:
 
 * [RAyMOND: an N-body and hydrodynamics code for MOND](https://academic.oup.com/mnras/article/446/1/1060/1339114) (Candlish, Smith & Fellhauer 2015)
